@@ -1,4 +1,4 @@
-# Autoresponder Demo<
+# Autoresponder Demo
 Combine Bandwidth and Google Sheet's APIs to create an autoresponder with custom keywords, opt out management, and message logging.
 
 ### Step 1: Set up your Bandwidth account
