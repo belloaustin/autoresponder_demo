@@ -19,6 +19,14 @@ CREDENTIALS_PATH = "credentials.json".freeze
 TOKEN_PATH = "token.yaml".freeze
 SCOPE = Google::Apis::SheetsV4::AUTH_SPREADSHEETS
 
+## Autoresponder Spreadsheet Credentials
+begin
+    SPREADSHEET_ID = ENV.fetch("SPREADSHEET_ID")
+rescue
+    puts "Please set the Autoresponder Spreadsheet environmental variables defined in the README"
+    exit(-1)
+end
+
 ## Bandwidth Credentials
 begin
     MESSAGING_ACCOUNT_ID = ENV.fetch("MESSAGING_ACCOUNT_ID")
@@ -31,9 +39,6 @@ rescue
     puts "Please set the MESSAGING environmental variables defined in the README"
     exit(-1)
 end
-
-## Autoresponder Spreadsheet Credentials
-SPREADSHEET_ID = "1kJURfBRfMO06PAFDZ3NCTGFvvMIgDktLovnMOkPZ-_c"
 
 ##
 # Ensure valid credentials, either by restoring from the saved credentials
