@@ -19,14 +19,6 @@ CREDENTIALS_PATH = "credentials.json".freeze
 TOKEN_PATH = "token.yaml".freeze
 SCOPE = Google::Apis::SheetsV4::AUTH_SPREADSHEETS
 
-## Autoresponder Spreadsheet Credentials
-begin
-    SPREADSHEET_ID = ENV.fetch("SPREADSHEET_ID")
-rescue
-    puts "Please set the Autoresponder Spreadsheet environmental variables defined in the README"
-    exit(-1)
-end
-
 ## Bandwidth Credentials
 begin
     MESSAGING_ACCOUNT_ID = ENV.fetch("MESSAGING_ACCOUNT_ID")
@@ -35,8 +27,11 @@ begin
     MESSAGING_APPLICATION_ID = ENV.fetch("MESSAGING_APPLICATION_ID")
     ACCOUNT_USERNAME = ENV.fetch("ACCOUNT_USERNAME")
     ACCOUNT_PASSWORD = ENV.fetch("ACCOUNT_PASSWORD")
+
+    ## Autoresponder Spreadsheet Credentials
+    SPREADSHEET_ID = ENV.fetch("SPREADSHEET_ID")
 rescue
-    puts "Please set the MESSAGING environmental variables defined in the README"
+    puts "Please set the environmental variables defined in the README"
     exit(-1)
 end
 
@@ -292,6 +287,23 @@ def send_message(to, from, text, service)
     end
 end
 
+# Determines if a number is toll-free
+#
+# @param number [String] A phone number
+#
+# @return Boolean
+def is_toll_free?(number)
+    areaCodeFirstDigit = number[2]
+    areaCodeSecondDigit = number[3]
+    areaCodeThirdDigit = number[4]
+
+    if areaCodeFirstDigit == "8" && areaCodeSecondDigit == areaCodeThirdDigit
+        return true
+    else
+        return false
+    end
+end
+
 ##
 # Takes info from an incoming message and maps it to a corresponding action
 #
@@ -318,11 +330,15 @@ def handle_inbound_sms(to_number, from_number, text, service)
                 if row[0].downcase == text.downcase || row[0] == "*"
                     if opted_out && row[5] == "T"
                         remove_from_opt_out(service, to_number, from_number)
-                        send_message(from_number, to_number, row[1], service)
+                        if !is_toll_free?(to_number) || (is_toll_free?(to_number) && text.downcase != "unstop")
+                            send_message(from_number, to_number, row[1], service)
+                        end
                         break
                     elsif !opted_out && row[4] == "T"
                         opt_out(service, to_number, from_number)
-                        send_message(from_number, to_number, row[1], service)
+                        if !is_toll_free?(to_number) || (is_toll_free?(to_number) && text.downcase != "stop")
+                            send_message(from_number, to_number, row[1], service)
+                        end
                         break
                     elsif !opted_out && row[5] != "T"
                         send_message(from_number, to_number, row[1], service)
