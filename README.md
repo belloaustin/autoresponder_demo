@@ -52,7 +52,7 @@ The following environmental variables need to be set
 Run the following command to start the server
 
 ```
-ruby autoresponder.rb
+ruby app.rb
 ```
 
 You are now ready to text your Bandwidth phone number that is associated with the application
