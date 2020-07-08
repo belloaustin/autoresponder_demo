@@ -103,10 +103,9 @@ end
 #
 # @return void
 def opt_out(service, sending_number, receiving_number)
-    spreadsheet_id = SPREADSHEET_ID
     opt_range = "'Opt Out'!A:B"
     opt_value_range_object = Google::Apis::SheetsV4::ValueRange.new(majorDimension: 'ROWS', values: [[sending_number, receiving_number]])
-    opt_append = service.append_spreadsheet_value(spreadsheet_id, opt_range, opt_value_range_object, value_input_option: 'RAW')
+    opt_append = service.append_spreadsheet_value(SPREADSHEET_ID, opt_range, opt_value_range_object, value_input_option: 'RAW')
 end
 
 ##
@@ -118,9 +117,8 @@ end
 #
 # @return [Boolean]
 def is_opted_out?(service, sending_number, receiving_number)
-    spreadsheet_id = SPREADSHEET_ID
     opt_range = "'Opt Out'!A:B"
-    opt_response = service.get_spreadsheet_values spreadsheet_id, opt_range
+    opt_response = service.get_spreadsheet_values SPREADSHEET_ID, opt_range
 
     opt_response.values.each do |row|
         if row[0] == sending_number and row[1] == receiving_number
@@ -139,15 +137,14 @@ end
 #
 # @return void
 def remove_from_opt_out(service, sending_number, receiving_number)
-    spreadsheet_id = SPREADSHEET_ID
     number_range = "'Opt Out'!A2:B"
-    opt_spreadsheet = service.get_spreadsheet_values spreadsheet_id, number_range
+    opt_spreadsheet = service.get_spreadsheet_values SPREADSHEET_ID, number_range
 
     number_vals = opt_spreadsheet.values
     number_vals.delete([sending_number, receiving_number])
-    service.clear_values spreadsheet_id, number_range
+    service.clear_values SPREADSHEET_ID, number_range
     number_value_range_object = Google::Apis::SheetsV4::ValueRange.new(values: number_vals)
-    number_update = service.update_spreadsheet_value(spreadsheet_id, number_range, number_value_range_object, value_input_option: 'RAW')
+    number_update = service.update_spreadsheet_value(SPREADSHEET_ID, number_range, number_value_range_object, value_input_option: 'RAW')
 end
 
 ##
@@ -159,14 +156,12 @@ end
 #
 # @return void
 def find_id(message_id, service)
-
-    spreadsheet_id = SPREADSHEET_ID
     message_range = "'Message Log'!A2:A"
 
     # The message may not yet be stored in the sheet, so this will loop through a few times with a pause after each pass
     count = 1
     while count <= 5
-        message_spreadsheet = service.get_spreadsheet_values spreadsheet_id, message_range
+        message_spreadsheet = service.get_spreadsheet_values SPREADSHEET_ID, message_range
         message_vals = message_spreadsheet.values
         message_index = message_vals.index([message_id])
 
@@ -185,7 +180,6 @@ end
 #
 # @return void
 def log_outbound_response(response, service)
-    spreadsheet_id = SPREADSHEET_ID
     log_range = "'Message Log'!A2:N"
     log_value_range_object = Google::Apis::SheetsV4::ValueRange.new(majorDimension: 'ROWS', values: [[
         response.data.id,
@@ -205,7 +199,7 @@ def log_outbound_response(response, service)
         location_name(response.data.from)
     ]])
 
-    log_append = service.append_spreadsheet_value(spreadsheet_id, log_range, log_value_range_object, value_input_option: 'RAW')
+    log_append = service.append_spreadsheet_value(SPREADSHEET_ID, log_range, log_value_range_object, value_input_option: 'RAW')
 end
 
 ##
@@ -215,7 +209,6 @@ end
 #
 # @return void
 def log_inbound(callback, service)
-    spreadsheet_id = SPREADSHEET_ID
     log_range = "'Message Log'!A2:N"
 
     log_value_range_object = Google::Apis::SheetsV4::ValueRange.new(majorDimension: 'ROWS', values: [[
@@ -235,7 +228,7 @@ def log_inbound(callback, service)
         sub_account_name(callback["message"]["to"][0]),
         location_name(callback["message"]["to"][0])
     ]])
-    log_append = service.append_spreadsheet_value(spreadsheet_id, log_range, log_value_range_object, value_input_option: 'RAW')
+    log_append = service.append_spreadsheet_value(SPREADSHEET_ID, log_range, log_value_range_object, value_input_option: 'RAW')
 end
 
 ##
@@ -246,7 +239,6 @@ end
 #
 # @return void
 def log_outbound_callback(callback, service)
-    spreadsheet_id = SPREADSHEET_ID
     row = find_id(callback["message"]["id"], service) + 2
     type_range = "'Message Log'!G" + row.to_s
     description_range = "'Message Log'!H" + row.to_s
@@ -258,12 +250,12 @@ def log_outbound_callback(callback, service)
     error_value_range_object = Google::Apis::SheetsV4::ValueRange.new(values: [[callback["errorCode"]]])
     completed_value_range_object = Google::Apis::SheetsV4::ValueRange.new(values: [[callback["time"]]])
 
-    type_update = service.update_spreadsheet_value(spreadsheet_id, type_range, type_value_range_object, value_input_option: 'RAW')
-    description_update = service.update_spreadsheet_value(spreadsheet_id, description_range, description_value_range_object, value_input_option: 'RAW')
+    type_update = service.update_spreadsheet_value(SPREADSHEET_ID, type_range, type_value_range_object, value_input_option: 'RAW')
+    description_update = service.update_spreadsheet_value(SPREADSHEET_ID, description_range, description_value_range_object, value_input_option: 'RAW')
     if !callback["errorCode"].nil?
-        error_update = service.update_spreadsheet_value(spreadsheet_id, error_range, error_value_range_object, value_input_option: 'RAW')
+        error_update = service.update_spreadsheet_value(SPREADSHEET_ID, error_range, error_value_range_object, value_input_option: 'RAW')
     end
-    completed_update = service.update_spreadsheet_value(spreadsheet_id, completed_range, completed_value_range_object, value_input_option: 'RAW')
+    completed_update = service.update_spreadsheet_value(SPREADSHEET_ID, completed_range, completed_value_range_object, value_input_option: 'RAW')
 end
 
 # Take information from a Bandwidth inbound message callback and responds with
@@ -316,12 +308,22 @@ end
 # @return void
 def handle_inbound_sms(to_number, from_number, text, service)
     # Get values from Keyword Spreadsheet
-    spreadsheet_id = SPREADSHEET_ID
     keyword_range = "Keywords!A2:F"
-    keyword_response = service.get_spreadsheet_values spreadsheet_id, keyword_range
+    keyword_response = service.get_spreadsheet_values SPREADSHEET_ID, keyword_range
 
     location_name = location_name(to_number)
     opted_out = is_opted_out?(service, to_number, from_number)
+
+    opt_out_tf_keywords = ["stop", "arret"]
+    opt_in_tf_keywords = ["unstop", "start", "nonarret"]
+
+    if !opted_out && is_toll_free?(to_number) && opt_out_tf_keywords.include?(text.downcase)
+        opt_out(service, to_number, from_number)
+        return "Opt Out"
+    elsif opted_out && is_toll_free?(to_number) && opt_in_tf_keywords.include?(text.downcase)
+        remove_from_opt_out(service, to_number, from_number)
+        return "Opt In"
+    end
 
     # "*" is used in the spreadsheet as a replacement for no response, as blank cells won't be returned
     keyword_response.values.each do |row|
@@ -333,16 +335,16 @@ def handle_inbound_sms(to_number, from_number, text, service)
                         if !is_toll_free?(to_number) || (is_toll_free?(to_number) && text.downcase != "unstop")
                             send_message(from_number, to_number, row[1], service)
                         end
-                        break
+                        return "Opt In"
                     elsif !opted_out && row[4] == "T"
                         opt_out(service, to_number, from_number)
                         if !is_toll_free?(to_number) || (is_toll_free?(to_number) && text.downcase != "stop")
                             send_message(from_number, to_number, row[1], service)
                         end
-                        break
+                        return "Opt Out"
                     elsif !opted_out && row[5] != "T"
                         send_message(from_number, to_number, row[1], service)
-                        break
+                        return "Send Message"
                     end
                 end
             end
