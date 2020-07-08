@@ -4,16 +4,16 @@
 
 ![BW_messaging](https://github.com/Bandwidth/examples/blob/master/.readme_images/BW_Messaging.png)
 
-</div>
-
 Combine Bandwidth and Google Sheet's APIs to create an autoresponder with custom keywords, opt out management, and message logging.
+
+</div>
 
 ## Pre-Reqs
 
-### Bandwidth
+#### Bandwidth
 You will need to set up Bandwidth Applications and have phone numbers associated with these application, and point the callback URL on these applications to the messaging endpoints on the server running this app. `ngrok` is highly recommended for local prototyping.
 
-### Google Sheets
+#### Google Sheets
 Follow the instructions [here](https://developers.google.com/sheets/api/quickstart/ruby) to generate a `credentials.json` file. Make sure to save that file in the same directory as your `autoresponder.rb`.
 
 Make a copy of this [spreadsheet](https://docs.google.com/spreadsheets/d/1hQeHCh35xMTLCKuHQJp95RnrTHuQbaEAdbT-CO1Edh0/edit?usp=sharing) and save the spreadsheet ID as an environmental variable. The spreadsheet ID is the value between the "/d/" and the "/edit" in the URL of your spreadsheet.
